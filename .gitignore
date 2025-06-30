@@ -1,0 +1,37 @@
+# Entornos y archivos de entorno
+.env
+.env.*            # cualquier backup o entorno distinto
+auth.json
+
+# Logs y cachés
+*.log
+npm-debug.log*
+yarn-error.log*
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Dependencias
+/vendor/
+/node_modules/
+
+# Builds y artefactos
+/public/build
+/public/hot
+/public/storage
+
+# IDEs y editores
+/.idea/
+/.vscode/
+/fleet/
+/zed/
+/Homestead.json
+/Homestead.yaml
+
+# S.O. y otros
+.DS_Store
+Thumbs.db
+
+# Llaves y ficheros sensibles
+storage/*.key
