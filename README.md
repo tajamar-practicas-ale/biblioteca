@@ -1,61 +1,88 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Biblioteca - Bibliotech
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Actualizar el sistema operativo e instalar actualizaciones:  
+`sudo apt update && sudo apt upgrade -y`
 
-## About Laravel
+Instalar Apache, PHP y extensiones necesarias junto con MySQL y git:  
+`sudo apt install apache2 php libapache2-mod-php php-mbstring php-xml php-zip unzip php-mysql mysql-server git -y`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Instalar Composer globalmente:  
+`curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer`
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Clonar el repositorio y acceder a la carpeta:  
+```.bash
+cd /var/www/
+git clone https://github.com/tajamar-practicas-ale/biblioteca.git  
+cd biblioteca
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Instalar dependencias PHP con Composer:  
+`composer install`
 
-## Learning Laravel
+Copiar el archivo de entorno y modificar variables de base de datos:  
+`cp .env.example .env`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Editar el archivo .env para que contenga:  
+``` .env
+DB_CONNECTION=mysql  
+DB_HOST=127.0.0.1  
+DB_PORT=3306  
+DB_DATABASE=biblioteca  
+DB_USERNAME=root  
+DB_PASSWORD= (no poner contraseña en el repositorio ni subirla al control de versiones; establecerla localmente)
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Acceder a MySQL para configurar usuario y base de datos si es necesario:  
+`sudo mysql`
+``` sql
+CREATE DATABASE IF NOT EXISTS biblioteca;  
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'tu_contraseña_segura';  
+FLUSH PRIVILEGES;  
+EXIT;
+```
+Restaurar backup:  
+`mysql -u tu_usuario_mysql -p biblioteca < infrastructure/backup_biblioteca.sql`
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Generar la clave de aplicación Laravel:  
+`php artisan key:generate`
 
-## Laravel Sponsors
+Dar permisos correctos para que Apache pueda escribir en carpetas importantes:  
+`sudo chown -R www-data:www-data storage bootstrap/cache`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Ejecutar migraciones y cargar datos iniciales si existen:  
+`php artisan migrate --seed`
 
-### Premium Partners
+Configurar Apache copiando el archivo de configuración y habilitando el sitio:  
+`sudo cp infrastructure/infras.conf /etc/apache2/sites-available/biblioteca.conf`  
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Editar el archivo `/etc/apache2/sites-available/biblioteca.conf` para actualizar la IP pública de la instancia EC2 antes de habilitar el sitio.
+``` bash
+sudo a2ensite biblioteca.conf  
+sudo a2enmod rewrite  
+sudo systemctl restart apache2
+```
 
-## Contributing
+(Opcional) Deshabilitar el sitio por defecto de Apache: 
+``` bash
+sudo a2dissite 000-default.conf  
+sudo systemctl reload apache2
+```
+El proyecto debería estar accesible desde el navegador apuntando al dominio o IP configurados en Apache.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Modelo de datos (Diagrama ER)
 
-## Code of Conduct
+El esquema de la base de datos está definido en el archivo [`infrastructure/schema.dbml`](./infrastructure/schema.dbml). Este archivo contiene la definición en formato DBML para usar en [dbdiagram.io](https://dbdiagram.io) y otras herramientas compatibles.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Cómo visualizar el diagrama
 
-## Security Vulnerabilities
+1. Accede a [dbdiagram.io](https://dbdiagram.io).  
+2. Importa el archivo `schema.dbml` ubicado en la carpeta `infrastructure` del proyecto.  
+3. Visualiza y edita el diagrama según necesites.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## Organización del proyecto
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- `/infrastructure/infras.conf`: configuración de Apache.  
+- `/infrastructure/schema.dbml`: definición del modelo entidad-relación (ER) en DBML.
+- `/infrastructure/backup_biblioteca.sql`: backup de la base de datos (preferiblemente no ponderlo en el repo).
