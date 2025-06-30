@@ -1,0 +1,28 @@
+Table users {
+  id bigint [pk]
+  name varchar
+  email varchar [unique]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table books {
+  id bigint [pk]
+  title varchar
+  author varchar
+  isbn varchar [unique]
+  available boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table loans {
+  id bigint [pk]
+  user_id bigint [ref: > users.id]
+  book_id bigint [ref: > books.id]
+  loan_date date
+  return_date date
+  returned boolean
+  created_at timestamp
+  updated_at timestamp
+}
