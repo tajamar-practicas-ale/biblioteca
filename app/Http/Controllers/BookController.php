@@ -15,8 +15,8 @@ class BookController extends Controller
         // Obtenemos todos los libros de la base de datos
         $books = Book::all();
 
-        // Retornamos una vista llamada 'books.index' y le pasamos los libros
-        return view('books.index', compact('books'));
+        // Retornamos json para React
+        return response()->json($books);
     }
 
     // Mostrar formulario para crear un libro nuevo
@@ -61,7 +61,7 @@ class BookController extends Controller
     // Actualizar los datos del libro
     public function update(Request $request, Book $book)
     {
-        // Validamos los datos, ignorando el ISBN actual en la regla unique
+    	try {
         $validated = $request->validate([
             'title'     => 'required|string|max:255',
             'author'    => 'required|string|max:255',
@@ -69,11 +69,19 @@ class BookController extends Controller
             'available' => 'required|boolean',
         ]);
 
-        // Actualizamos el libro con los nuevos datos
         $book->update($validated);
 
-        // Redirigimos al listado con mensaje
-        return redirect()->route('books.index')->with('success', 'Libro actualizado correctamente.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Libro actualizado correctamente',
+                'book' => $book,
+            ]);
+        }
+
+        	return redirect()->route('books.index')->with('success', 'Libro actualizado');
+    	} catch (\Throwable $e) {
+        	return response()->json(['error' => $e->getMessage()], 500);
+    	}
     }
 
     // Eliminar un libro
